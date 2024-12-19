@@ -6,6 +6,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/consensus/misc/eip1559"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
 
 	"github.com/ethereum-optimism/optimism/op-node/rollup"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
@@ -19,7 +20,10 @@ func PayloadToBlockRef(rollupCfg *rollup.Config, payload *eth.ExecutionPayload) 
 	var sequenceNumber uint64
 	if uint64(payload.BlockNumber) == genesis.L2.Number {
 		if payload.BlockHash != genesis.L2.Hash {
-			return eth.L2BlockRef{}, fmt.Errorf("expected L2 genesis hash to match L2 block at genesis block number %d: %s <> %s", genesis.L2.Number, payload.BlockHash, genesis.L2.Hash)
+			log.Warn("expected L2 genesis hash to match L2 block at genesis block number %d: %s <> %s", genesis.L2.Number, payload.BlockHash, genesis.L2.Hash)
+			genesis.L2.Hash = payload.BlockHash
+			log.Warn("updated L2 genesis hash to match L2 block at genesis block number %d: %s <> %s", genesis.L2.Number, payload.BlockHash, genesis.L2.Hash)
+			// return eth.L2BlockRef{}, fmt.Errorf("expected L2 genesis hash to match L2 block at genesis block number %d: %s <> %s", genesis.L2.Number, payload.BlockHash, genesis.L2.Hash)
 		}
 		l1Origin = genesis.L1
 		sequenceNumber = 0
@@ -55,9 +59,12 @@ func PayloadToBlockRef(rollupCfg *rollup.Config, payload *eth.ExecutionPayload) 
 func PayloadToSystemConfig(rollupCfg *rollup.Config, payload *eth.ExecutionPayload) (eth.SystemConfig, error) {
 	if uint64(payload.BlockNumber) == rollupCfg.Genesis.L2.Number {
 		if payload.BlockHash != rollupCfg.Genesis.L2.Hash {
-			return eth.SystemConfig{}, fmt.Errorf(
-				"expected L2 genesis hash to match L2 block at genesis block number %d: %s <> %s",
-				rollupCfg.Genesis.L2.Number, payload.BlockHash, rollupCfg.Genesis.L2.Hash)
+			log.Warn("expected L2 genesis hash to match L2 block at genesis block number %d: %s <> %s", rollupCfg.Genesis.L2.Number, payload.BlockHash, rollupCfg.Genesis.L2.Hash)
+			rollupCfg.Genesis.L2.Hash = payload.BlockHash
+			log.Warn("updated L2 genesis hash to match L2 block at genesis block number %d: %s <> %s", rollupCfg.Genesis.L2.Number, payload.BlockHash, rollupCfg.Genesis.L2.Hash)
+			// return eth.SystemConfig{}, fmt.Errorf(
+			// 	"expected L2 genesis hash to match L2 block at genesis block number %d: %s <> %s",
+			// 	rollupCfg.Genesis.L2.Number, payload.BlockHash, rollupCfg.Genesis.L2.Hash)
 		}
 		return rollupCfg.Genesis.SystemConfig, nil
 	}
